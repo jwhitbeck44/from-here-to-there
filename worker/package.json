@@ -1,0 +1,7 @@
+{
+  "name": "from-here-to-there-relay",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "wrangler dev", "deploy": "wrangler deploy" },
+  "devDependencies": { "wrangler": "^4" }
+}

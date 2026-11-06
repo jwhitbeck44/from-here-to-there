@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>From Here to There · ENTP 3000</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Plan: UCCS black, white and CU Gold (#CFB87C). Black header band; gold marks what matters now (the first move, shared stops, the worst-case callout). Gold always carries black text.
+   Layout: one column of screens with a step rail on top; the map screen widens to route cards side by side. */
+:root {
+  --paper: #ffffff;
+  --card: #ffffff;
+  --ink: #000000;
+  --muted: #565a5c;
+  --line: #d4d5d5;
+  --pink: #cfb87c;
+  --pink-soft: #f6f1e4;
+  --blue: #000000;
+  --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #000000; --card: #141414; --ink: #ffffff; --muted: #a2a4a3;
+    --line: #333333; --pink: #cfb87c; --pink-soft: #29231a; --blue: #ffffff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #000000; --card: #141414; --ink: #ffffff; --muted: #a2a4a3;
+  --line: #333333; --pink: #cfb87c; --pink-soft: #29231a; --blue: #ffffff; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.5; }
+a { color: var(--blue); }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; box-shadow: 0 0 0 6px var(--pink); }
+.hidden { display: none !important; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 18px; }
+.wide { max-width: 1120px; }
+
+header.top { background: #000; color: #fff; border-bottom: 4px solid var(--pink); }
+header.top .kicker { color: var(--pink); }
+header.top .wrap { padding-top: 16px; padding-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+.kicker { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.brand { font-family: var(--font-display); font-weight: 900; font-size: 30px; line-height: 1; text-transform: uppercase; margin: 0; }
+.brand { color: #fff; }
+.brand span { background: var(--pink); color: #000; padding: 0 .15em; }
+
+nav.rail { display: flex; gap: 4px; flex-wrap: wrap; padding: 12px 0 0; }
+nav.rail button { font-family: var(--font-mono); font-size: 12px; border: 1.5px solid #565a5c; background: transparent; color: #a2a4a3; padding: 3px 8px; cursor: pointer; border-radius: 0; }
+nav.rail button.done { color: #fff; border-color: #fff; }
+nav.rail button.now { background: var(--pink); color: #000; border-color: var(--pink); }
+nav.rail button:disabled { cursor: default; opacity: .55; }
+
+main { padding: 22px 0 60px; }
+section.screen { display: grid; gap: 16px; }
+h1 { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: clamp(38px, 8vw, 72px); line-height: 1.02; margin: 0; text-wrap: balance; }
+h1 .hl { background: var(--pink); color: #000; padding: 0 .1em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+h2 { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: 30px; line-height: 1.05; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: 21px; line-height: 1.1; margin: 0; }
+p { margin: 0; }
+.lede { font-size: 18.5px; max-width: 62ch; }
+.muted { color: var(--muted); }
+.small { font-size: 14.5px; }
+.tag { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+
+.card { background: var(--card); border: 2px solid var(--ink); padding: 16px; display: grid; gap: 10px; }
+.card.quiet { border-color: var(--line); }
+.card.hot { box-shadow: 6px 6px 0 var(--pink); }
+textarea, input[type=text] { width: 100%; font: inherit; font-size: 16px; color: var(--ink); background: var(--paper); border: 1.5px solid var(--line); padding: 10px 12px; border-radius: 0; }
+textarea { resize: vertical; min-height: 80px; }
+textarea.big { min-height: 240px; }
+textarea:focus, input:focus { border-color: var(--blue); }
+label.lab { font-weight: 700; }
+
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button.btn { font: inherit; font-weight: 700; cursor: pointer; border: 2px solid var(--ink); background: var(--card); color: var(--ink); padding: 9px 16px; border-radius: 0; }
+button.btn.primary { background: var(--ink); color: var(--paper); }
+button.btn.primary:hover:not(:disabled) { background: var(--pink); border-color: var(--pink); color: #000; }
+button.btn.small { padding: 4px 10px; font-size: 14px; border-width: 1.5px; }
+button.btn:disabled { opacity: .5; cursor: default; }
+.toggle { display: flex; gap: 10px; align-items: flex-start; }
+.toggle input { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--pink); }
+
+.status { display: flex; gap: 10px; align-items: center; border: 2px dashed var(--ink); padding: 10px 12px; background: var(--pink-soft); }
+.status .dots::after { content: "..."; }
+.note { border-left: 4px solid var(--pink); padding: 6px 12px; background: var(--pink-soft); }
+.err { border-left: 4px solid #c43; padding: 6px 12px; }
+#pass-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+.pass-box { background: var(--card); color: var(--ink); border: 2px solid var(--ink); padding: 20px; max-width: 420px; width: 100%; display: grid; gap: 10px; }
+.pass-box input { font: inherit; padding: 10px; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); }
+
+/* playback cards */
+.cards { display: grid; gap: 12px; }
+.pb { display: grid; gap: 6px; }
+.pb .who { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+
+/* questions */
+.qnum { font-family: var(--font-display); font-weight: 900; font-size: 40px; color: var(--ink); background: var(--pink); padding: 2px 8px; line-height: 1; }
+
+/* map */
+.mapwrap { overflow-x: auto; border: 2px solid var(--ink); background: var(--card); }
+.mapwrap svg { display: block; min-width: 640px; width: 100%; height: auto; }
+.routes { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; align-items: start; }
+.route { background: var(--card); border: 2px solid var(--ink); display: grid; }
+.route > .head { padding: 14px 16px 10px; border-bottom: 1.5px solid var(--line); display: grid; gap: 4px; }
+.route .num { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.trade { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; padding: 10px 16px; border-bottom: 1.5px solid var(--line); font-size: 14.5px; }
+.trade dt { font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding-top: 2px; }
+.trade dd { margin: 0; }
+ol.stops { list-style: none; margin: 0; padding: 10px 16px; display: grid; gap: 12px; }
+ol.stops li { display: grid; grid-template-columns: 18px 1fr; gap: 10px; }
+.dot { width: 14px; height: 14px; border-radius: 50%; background: var(--muted); margin-top: 5px; }
+.dot.shared { background: var(--card); border: 3px solid var(--ink); }
+.dot.first { background: var(--pink); border: 2px solid var(--ink); }
+.stop-title { font-weight: 700; }
+.stop-meta { font-size: 14px; color: var(--muted); }
+.chip { display: inline-block; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+.chip.pink { background: var(--pink); color: #000; }
+.chip.line { border: 1.5px solid var(--ink); color: var(--ink); }
+.stop-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.extra { padding: 10px 16px; border-top: 1.5px solid var(--line); font-size: 14.5px; display: grid; gap: 6px; }
+.route .foot { padding: 12px 16px 16px; border-top: 1.5px solid var(--line); }
+.unverified { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.reroute-box { background: var(--pink-soft); padding: 10px; display: grid; gap: 8px; margin-top: 6px; }
+
+/* chat */
+.chat { display: grid; gap: 8px; max-height: 420px; overflow-y: auto; padding: 4px; }
+.bubble { padding: 8px 12px; max-width: 85%; }
+.bubble.me { justify-self: end; background: var(--ink); color: var(--paper); }
+.bubble.them { justify-self: start; background: var(--pink-soft); color: var(--ink); }
+.worst { background: var(--pink-soft); border-left: 6px solid var(--pink); padding: 14px 16px; display: grid; gap: 6px; }
+.worst h3 { font-size: 24px; }
+.aud { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.aud > div { border: 1.5px solid var(--line); padding: 10px 12px; display: grid; gap: 4px; font-size: 15px; }
+.stop-when { font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+
+/* plan */
+.first-move { background: var(--pink); color: #000; padding: 18px; display: grid; gap: 6px; }
+.first-move h2 { color: #000; }
+.first-move .big { font-size: 22px; font-weight: 700; line-height: 1.3; }
+.bmc { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 560px) { .bmc { grid-template-columns: minmax(0, 1fr); } }
+.bmc div { border: 1.5px solid var(--line); padding: 8px 10px; font-size: 14.5px; background: var(--card); }
+.bmc div.weak { border: 2px solid var(--ink); background: var(--pink-soft); }
+.bmc b { display: block; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 500; }
+.pixar p { margin: 4px 0; }
+.mine { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+textarea.manual { min-height: 140px; font-family: var(--font-mono); font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; padding: 20px 0 40px; font-family: var(--font-mono); }
+@media print { header.top, nav.rail, .row, footer, .no-print { display: none !important; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap wide">
+    <div>
+      <div class="kicker">ENTP 3000 · Entrepreneurship for Everyone</div>
+      <p class="brand">From here <span>to there</span></p>
+    </div>
+    <nav class="rail" id="rail" aria-label="Steps"></nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap" id="frame">
+
+    <!-- 1 DUMP -->
+    <section class="screen" id="s-dump" data-step="0">
+      <h1>Big dream? Good. <span class="hl">Let's find the routes.</span></h1>
+      <p class="lede">Tell us as much as you can about what you want to build. More is better, and messy is fine. We'll organize it.</p>
+      <div class="card hot">
+        <label class="lab" for="dump">The thing you want to build</label>
+        <p class="small muted">If you know them: what it is, who it's for, why you, what you've got (skills, people, stuff), what you could afford to lose, what scares you.</p>
+        <textarea id="dump" class="big" placeholder="ok so basically..."></textarea>
+        <label class="toggle" for="push"><input type="checkbox" id="push"> <span>Push me harder. Tell me what I'm avoiding.</span></label>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="go-playback">Show me what you heard</button>
+        <button class="btn hidden" id="resume">Pick up where I left off</button>
+        <button class="btn hidden" id="start-over">Start over</button>
+      </div>
+      <div id="dump-status"></div>
+    </section>
+
+    <!-- 2 HEARD -->
+    <section class="screen hidden" id="s-heard" data-step="1">
+      <h2>Here's what I heard</h2>
+      <p class="muted">Fix anything that's off, in your own words.</p>
+      <div id="heard-notes"></div>
+      <div class="cards" id="heard-cards"></div>
+      <div class="row"><button class="btn primary" id="heard-ok">That's it</button></div>
+      <div id="heard-status"></div>
+    </section>
+
+    <!-- 3 GAPS -->
+    <section class="screen hidden" id="s-gaps" data-step="2">
+      <h2>A few quick questions</h2>
+      <div class="card">
+        <div class="row" style="align-items:flex-start;gap:14px">
+          <div class="qnum" id="q-num">1</div>
+          <div style="flex:1;display:grid;gap:8px">
+            <label class="lab" for="q-answer" id="q-text"></label>
+            <textarea id="q-answer" placeholder="Messy is fine."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="q-next">Next</button>
+        <button class="btn" id="q-skip">Skip this one</button>
+      </div>
+      <div id="map-status"></div>
+    </section>
+
+    <!-- 4 MAP -->
+    <section class="screen hidden" id="s-map" data-step="3">
+      <h2 id="map-title">Your map</h2>
+      <p id="map-dest" class="lede"></p>
+      <div id="map-change"></div>
+      <div class="mapwrap" id="map-svg"></div>
+      <p class="small muted">Each dot is a stop, and each stop is a test. Ringed dots sit on more than one route. The gold dot is your first move.</p>
+      <div class="routes" id="routes"></div>
+      <div class="card quiet">
+        <h3>Got a route of your own?</h3>
+        <label class="small muted" for="own-route">"What if I..." Claude fills in its tradeoffs.</label>
+        <textarea id="own-route" placeholder="what if i just..."></textarea>
+        <div class="row"><button class="btn" id="add-route">Add my route</button></div>
+      </div>
+      <div class="card quiet" id="hard-card">
+        <h3>The hard parts</h3>
+        <ul id="hard-parts" style="margin:0;padding-left:20px;display:grid;gap:6px"></ul>
+        <p id="map-note" class="muted"></p>
+      </div>
+      <div class="card quiet">
+        <h3>Check the world <span class="small muted" style="font-family:var(--font-body);text-transform:none;font-weight:400">(optional)</span></h3>
+        <p class="small muted">Who pays and who else does this. No web search in this version, so every number is a guess to check.</p>
+        <div class="row"><button class="btn" id="go-market">Run a rough market check</button></div>
+        <div id="market-out"></div>
+      </div>
+      <div id="map-busy"></div>
+    </section>
+
+    <!-- 5 TEST -->
+    <section class="screen hidden" id="s-test" data-step="4">
+      <h2>Test the first stop</h2>
+      <p class="muted" id="test-route"></p>
+      <div id="test-out" class="cards"></div>
+      <div class="card quiet hidden" id="aud-card">
+        <h3>Practice on an AI audience first <span class="small muted" style="font-family:var(--font-body);text-transform:none;font-weight:400">(optional)</span></h3>
+        <label class="small muted" for="aud-pitch">How would you put it to them? Say it your way.</label>
+        <textarea id="aud-pitch" placeholder="so basically i'm..."></textarea>
+        <div class="row"><button class="btn" id="go-aud">Try it on three AI people</button></div>
+        <div id="aud-out"></div>
+      </div>
+      <div class="row"><button class="btn primary hidden" id="go-ask">Practice the ask</button><button class="btn hidden" id="back-map">Back to the map</button></div>
+      <div id="test-status"></div>
+    </section>
+
+    <!-- 6 ASK -->
+    <section class="screen hidden" id="s-ask" data-step="5">
+      <h2>Practice the ask</h2>
+      <div class="card hot" id="ask-move"></div>
+      <div class="card">
+        <label class="lab" for="draft">Write what you'll say or text. Rough is fine, but it's yours.</label>
+        <textarea id="draft" placeholder="hey, i'm..."></textarea>
+        <div class="row"><button class="btn primary" id="go-critique">Get feedback</button></div>
+        <div id="critique"></div>
+      </div>
+      <div class="card hidden" id="rp-card">
+        <h3>Practice with Claude</h3>
+        <p class="small muted" id="rp-who"></p>
+        <div class="chat" id="chat"></div>
+        <textarea id="rp-say" placeholder="Say it how you'd say it."></textarea>
+        <div class="row">
+          <button class="btn primary" id="rp-send">Send</button>
+          <button class="btn" id="rp-done">Done practicing</button>
+        </div>
+        <div id="rp-feedback"></div>
+      </div>
+      <div class="row"><button class="btn primary" id="go-plan">Make my plan</button></div>
+      <div id="ask-status"></div>
+    </section>
+
+    <!-- 7 PLAN -->
+    <section class="screen hidden" id="s-plan" data-step="6">
+      <div id="plan"></div>
+      <div class="row no-print">
+        <button class="btn primary" id="copy-plan">Copy my plan</button>
+        <button class="btn" id="ics">Put it on my calendar</button>
+        <button class="btn" id="back-map2">Back to the map</button>
+      </div>
+      <p id="copy-msg" class="small muted"></p>
+      <textarea id="manual-copy" class="manual hidden" readonly aria-label="Plan text to copy"></textarea>
+      <div class="card quiet no-print">
+        <h3>Send it to your professor (Jim)</h3>
+        <p>My email is <b>jwhitbec@uccs.edu</b>. Ask me anything about your plan. Nothing leaves this page unless you send it.</p>
+        <label class="lab" for="jim-q">Your question</label>
+        <textarea id="jim-q"></textarea>
+        <div class="row">
+          <button class="btn" id="copy-send">Copy plan + question</button>
+          <a id="mailto" href="#">Open an email</a>
+        </div>
+        <p class="small muted">If the link doesn't open, paste into an email to <span id="jim-addr"></span>.</p>
+      </div>
+      <div id="plan-status"></div>
+    </section>
+
+    <!-- FALLBACK -->
+    <section class="screen hidden" id="s-fallback">
+      <h2>This page can't reach Claude for you right now</h2>
+      <p id="fallback-why" class="note"></p>
+      <p>Copy this prompt into any chatbot (Claude, ChatGPT, Gemini). It walks you through the same steps.</p>
+      <div class="row"><button class="btn primary" id="copy-fallback">Copy the prompt</button><button class="btn" id="fallback-back">Back</button></div>
+      <p id="fallback-msg" class="small muted"></p>
+      <textarea id="fallback-text" class="manual" readonly aria-label="Prompt to copy"></textarea>
+    </section>
+
+  </div>
+</main>
+<footer><div class="wrap">Your answers stay in this browser. To get answers back, what you type goes through a small relay run by Jim to Claude (Anthropic). The relay does not save it. A prototype for ENTP 3000, UCCS. <button class="btn small" id="pass-forget" type="button">Forget my passcode</button></div></footer>
+<div id="pass-overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="pass-h">
+  <div class="pass-box">
+    <h2 id="pass-h">Enter your passcode</h2>
+    <p>Jim gave you a passcode for this tool. You only enter it once on this device.</p>
+    <input id="pass-in" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Passcode">
+    <div class="row"><button class="btn primary" id="pass-go" type="button">Continue</button><button class="btn" id="pass-cancel" type="button">Cancel</button></div>
+    <p id="pass-msg" class="small muted" role="status"></p>
+  </div>
+</div>
+
+<script>
+/*FALLBACK*/
+</script>
+<script>
+(function () {
+"use strict";
+const JIM_EMAIL = "jwhitbec@uccs.edu";
+const RELAY = "/*RELAY*/";
+const CODE_KEY = "fht-passcode";
+const STEP_NAMES = ["Dump it", "What I heard", "Questions", "The map", "First test", "The ask", "Your plan"];
+const SCREENS = ["s-dump", "s-heard", "s-gaps", "s-map", "s-test", "s-ask", "s-plan"];
+const $ = (id) => document.getElementById(id);
+
+/* ---------- state ---------- */
+const blank = () => ({ step: 0, reached: 0, dump: "", push: false, pb: null, edited: {}, qi: 0, answers: [], map: null,
+  changeNote: "", market: null, routeId: null, test: null, pitch: "", audience: null, draft: "", critique: "", chat: [], feedback: "", plan: null, srcUrls: [] });
+let S = blank();
+function save() { try { localStorage.setItem("wbm-state", JSON.stringify(S)); } catch (e) {} }
+function load() { try { const d = JSON.parse(localStorage.getItem("wbm-state") || "null"); if (d && typeof d === "object") return Object.assign(blank(), d); } catch (e) {} return null; }
+
+/* ---------- small helpers ---------- */
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) for (const k in attrs) {
+    if (k === "class") el.className = attrs[k];
+    else if (k === "text") el.textContent = attrs[k];
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), attrs[k]);
+    else el.setAttribute(k, attrs[k]);
+  }
+  for (const c of kids) if (c != null && c !== false) el.append(c.nodeType ? c : document.createTextNode(String(c)));
+  return el;
+}
+function str(v) { return v == null ? "" : String(v).trim(); }
+function sent(v) { const t = str(v); return t && !/[.!?]$/.test(t) ? t + "." : t; }
+function fmt(d) { return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }); }
+function deadlineDate(now) { return new Date(new Date(now).getTime() + 48 * 3600 * 1000); }  // 48 hours from when they run it
+function fmtDT(d) { return fmt(d) + " at " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); }
+function fill(t, vals) { return t.replace(/\{\{(\w+)\}\}/g, (m, k) => (k in vals ? vals[k] : m)); }
+
+function cardsText() {
+  const p = S.pb || {};
+  const L = [["The dream, fully built", p.dream], ["Who it's for", p.persona], ["The problem it fixes", p.problem],
+    ["What they already have", p.have], ["What they could afford to lose", p.loss], ["Their worry", p.worry]];
+  let t = L.filter(([, v]) => str(v)).map(([k, v]) => "- " + k + ": " + str(v)).join("\n");
+  if (str(p.ideas_note)) t += "\n- Note on their ideas: " + str(p.ideas_note);
+  if (str(p.safety_note)) t += "\n- Safety note: " + str(p.safety_note);
+  return t || "- (nothing confirmed)";
+}
+function answersText() {
+  const qs = (S.pb && S.pb.questions) || [];
+  if (!qs.length) return "(no questions asked)";
+  return qs.map((q, i) => "- Q: " + q + "\n  A: " + (str(S.answers[i]) || "(skipped)")).join("\n");
+}
+/* ---------- Claude (through the relay) ---------- */
+function ctx() {
+  const now = new Date();
+  return { cards: cardsText(), answers: answersText(), now: fmtDT(now), deadline: fmtDT(deadlineDate(now)), push: !!S.push };
+}
+function getCode() { try { return localStorage.getItem(CODE_KEY) || ""; } catch (e) { return ""; } }
+function setCode(c) { try { if (c) localStorage.setItem(CODE_KEY, c); else localStorage.removeItem(CODE_KEY); } catch (e) {} }
+function errorCopy(code) {
+  switch (code) {
+    case "bad_passcode": return "That passcode didn't work. Check it and try again.";
+    case "passcode_cap": return "You've used all of your Claude calls for today. They reset overnight (Mountain Time). You can still copy a prompt into any chatbot.";
+    case "global_cap": return "The class has used up the tool's Claude calls for today. Try again tomorrow, or copy a prompt into any chatbot.";
+    case "too_many_tries": return "Too many wrong passcodes from this connection. Wait an hour and try again.";
+    case "unreachable": return "This page can't reach the From Here to There server right now. Check your connection and try again, or copy a prompt into any chatbot.";
+    case "upstream": return "Claude is busy or didn't finish. Wait a minute, then try again.";
+    case "refused": return "Claude wouldn't answer that one. Change what you wrote and try again.";
+    case "too_long": return "Claude ran out of room before it finished. Try again, or trim what you wrote.";
+    case "bad_request": return "That was more text than the tool can take. Trim it a bit and try again.";
+    case "invalid_json": return "Claude's answer came back scrambled. Try again.";
+    case "cancelled": return "Stopped.";
+    default: return "Something went wrong on the way to Claude. Try again.";
+  }
+}
+/* Codes that mean "use the copy-a-prompt page" instead of "try again". */
+const FALLBACK_CODES = ["unreachable", "passcode_cap", "global_cap"];
+function normUrl(u) { try { const x = new URL(u); return x.protocol + "//" + x.host.toLowerCase() + x.pathname.replace(/\/+$/, "") + x.search; } catch (e) { return ""; } }
+function isVerified(u) { const n = normUrl(str(u)); return !!n && (S.srcUrls || []).includes(n); }
+function safeLink(u, label) { return /^https?:\/\//i.test(str(u)) ? h("a", { href: str(u), target: "_blank", rel: "noopener noreferrer", text: label || str(u) }) : null; }
+
+/* The relay needs a passcode. Ask once, check it, remember it in this browser. */
+function ensureCode() {
+  if (getCode()) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const ov = $("pass-overlay"), inp = $("pass-in"), msg = $("pass-msg");
+    ov.classList.remove("hidden"); msg.textContent = ""; inp.value = ""; inp.focus();
+    const go = async () => {
+      const c = inp.value.trim(); if (!c) return;
+      msg.textContent = "Checking...";
+      try {
+        const r = await fetch(RELAY + "/api/check", { method: "POST", headers: { "X-Passcode": c } });
+        if (r.ok) { setCode(c); ov.classList.add("hidden"); resolve(true); return; }
+        const j = await r.json().catch(() => ({}));
+        msg.textContent = errorCopy(j.error || "bad_passcode");
+      } catch (e) { msg.textContent = errorCopy("unreachable"); }
+    };
+    $("pass-go").onclick = go; inp.onkeydown = (e) => { if (e.key === "Enter") go(); };
+    $("pass-cancel").onclick = () => { ov.classList.add("hidden"); resolve(false); };
+  });
+}
+
+/* One call: send the step name and the student's inputs, read the reply as it streams. */
+async function relay(step, vals, messages, signal, onText) {
+  const body = Object.assign({ step, vars: Object.assign(ctx(), vals || {}) }, messages ? { messages } : {});
+  let res;
+  try { res = await fetch(RELAY + "/api/step", { method: "POST", signal, headers: { "Content-Type": "application/json", "X-Passcode": getCode() }, body: JSON.stringify(body) }); }
+  catch (e) { throw { code: e && e.name === "AbortError" ? "cancelled" : "unreachable" }; }
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    throw { code: j.error || "upstream" };
+  }
+  let text = "", stop = "", got = false, buf = "";
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  const handle = (line) => {
+    if (!line.trim()) return;
+    let m; try { m = JSON.parse(line); } catch (e) { return; }
+    got = true;
+    if (m.t === "text") { text += m.d; if (onText) onText(text); }
+    else if (m.t === "reset") { text = ""; }
+    else if (m.t === "src") { const n = normUrl(m.url); if (n && !S.srcUrls.includes(n)) S.srcUrls.push(n); }
+    else if (m.t === "done") { stop = m.stop || "end_turn"; }
+    else if (m.t === "err") { throw { code: m.code || "upstream" }; }
+  };
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i; while ((i = buf.indexOf("\n")) >= 0) { handle(buf.slice(0, i)); buf = buf.slice(i + 1); }
+    }
+    handle(buf);
+  } catch (e) {
+    if (e && e.code) throw e;
+    throw { code: e && e.name === "AbortError" ? "cancelled" : "unreachable" };
+  }
+  if (stop === "refusal") throw { code: "refused", text };
+  if (stop === "max_tokens") throw { code: "too_long", text };
+  if (!got || (stop !== "end_turn" && stop !== "stop_sequence")) throw { code: "upstream", text };
+  save();
+  return text;
+}
+function busy(where, msg) {
+  const ctl = new AbortController();
+  const box = $(where);
+  box.innerHTML = "";
+  box.append(h("div", { class: "status" }, h("span", { class: "dots", text: msg || "Thinking" }),
+    h("button", { class: "btn small", onclick: () => ctl.abort() }, "Stop")));
+  return { ctl, done: () => { box.innerHTML = ""; }, fail: (e) => {
+    box.innerHTML = "";
+    const code = e && e.code;
+    if (code !== "cancelled") box.append(h("p", { class: "err", text: errorCopy(code) }));
+  } };
+}
+function handleFail(b, e) {
+  b.fail(e);
+  const code = e && e.code;
+  if (code === "bad_passcode") { setCode(""); return; }
+  if (FALLBACK_CODES.includes(code)) showFallback(code);
+}
+function parseJSON(text) {
+  let t = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const i = t.indexOf("{"), j = t.lastIndexOf("}");
+  if (i < 0 || j < i) throw { code: "invalid_json" };
+  try { return JSON.parse(t.slice(i, j + 1)); } catch (e) { throw { code: "invalid_json" }; }
+}
+async function askJSON(step, vals, where, msg) {
+  if (!(await ensureCode())) return null;
+  const b = busy(where, msg);
+  try { const out = parseJSON(await relay(step, vals, null, b.ctl.signal)); b.done(); return out; }
+  catch (e) { handleFail(b, e); return null; }
+}
+async function askText(step, vals, where, msg, outEl, messages) {
+  if (!(await ensureCode())) return null;
+  const b = busy(where, msg);
+  try {
+    const t = await relay(step, vals, messages, b.ctl.signal, (txt) => { if (outEl) outEl.textContent = txt; });
+    b.done();
+    return t;
+  } catch (e) {
+    handleFail(b, e);
+    if (outEl && e && e.text && e.code !== "refused") outEl.textContent = e.text;
+    return null;
+  }
+}
+
+/* ---------- navigation ---------- */
+function show(i) {
+  S.step = i; S.reached = Math.max(S.reached, i); save();
+  SCREENS.forEach((id, k) => $(id).classList.toggle("hidden", k !== i));
+  $("s-fallback").classList.add("hidden");
+  $("frame").classList.toggle("wide", i === 3);
+  drawRail();
+  if (i === 1) drawHeard();
+  if (i === 2) drawQuestion();
+  if (i === 3) drawMap();
+  if (i === 4) drawTest();
+  if (i === 5) drawAsk();
+  if (i === 6) drawPlan();
+  window.scrollTo({ top: 0 });
+}
+function drawRail() {
+  const r = $("rail"); r.innerHTML = "";
+  STEP_NAMES.forEach((n, i) => {
+    const b = h("button", { class: i === S.step ? "now" : (i <= S.reached ? "done" : ""), text: (i + 1) + " " + n });
+    b.disabled = i > S.reached; b.onclick = () => show(i);
+    r.append(b);
+  });
+}
+function showFallback(why) {
+  SCREENS.forEach((id) => $(id).classList.add("hidden"));
+  $("fallback-why").textContent = errorCopy(why || "unreachable");
+  $("s-fallback").classList.remove("hidden");
+  $("fallback-text").value = fill(FALLBACK, { dump: S.dump || $("dump").value });
+}
+
+/* ---------- 1 dump ---------- */
+$("go-playback").onclick = async () => {
+  S.dump = $("dump").value; S.push = $("push").checked; save();
+  if (!str(S.dump)) { $("dump-status").innerHTML = ""; $("dump-status").append(h("p", { class: "note", text: "Give me something to work with. Even \"idk, I just don't want a boss\" counts." })); return; }
+  const pb = await askJSON("PLAYBACK", { dump: S.dump }, "dump-status", "Reading what you wrote");
+  if (!pb) return;
+  pb.questions = Array.isArray(pb.questions) ? pb.questions.slice(0, 4).map(str).filter(Boolean) : [];
+  S.pb = pb; S.edited = {}; S.answers = []; S.qi = 0; S.map = null; S.routeId = null; S.test = null; S.plan = null; S.reached = 1;
+  show(1);
+};
+$("push").onchange = () => { S.push = $("push").checked; save(); };
+
+/* ---------- 2 heard ---------- */
+const PB_FIELDS = [["dream", "The dream, fully built"], ["persona", "Who it's for"], ["problem", "The problem it fixes for them"],
+  ["have", "What you already have"], ["loss", "What you could afford to lose"], ["worry", "What worries you"]];
+function drawHeard() {
+  const notes = $("heard-notes"); notes.innerHTML = "";
+  if (str(S.pb.safety_note)) notes.append(h("p", { class: "note", text: S.pb.safety_note }));
+  if (str(S.pb.ideas_note)) notes.append(h("p", { class: "note", text: S.pb.ideas_note }));
+  const box = $("heard-cards"); box.innerHTML = "";
+  PB_FIELDS.forEach(([k, label]) => {
+    const ta = h("textarea", { id: "pb-" + k, placeholder: "Not sure yet? Leave it blank." });
+    ta.value = str(S.pb[k]); ta.style.minHeight = "64px";
+    ta.oninput = () => { S.pb[k] = ta.value; S.edited[k] = true; save(); };
+    box.append(h("div", { class: "card pb" }, h("label", { class: "who", for: "pb-" + k, text: label + (S.edited[k] ? " · your words" : "") }), ta));
+  });
+}
+$("heard-ok").onclick = () => {
+  S.qi = 0; save();
+  if ((S.pb.questions || []).length) { S.reached = Math.max(S.reached, 2); show(2); }
+  else buildMap();
+};
+
+/* ---------- 3 gaps ---------- */
+function drawQuestion() {
+  const qs = S.pb.questions || [];
+  if (!qs.length) { $("q-text").textContent = "No questions. You told me enough."; return; }
+  const i = Math.min(S.qi, qs.length - 1);
+  $("q-num").textContent = (i + 1) + "/" + qs.length;
+  $("q-text").textContent = qs[i];
+  $("q-answer").value = S.answers[i] || "";
+  $("q-next").textContent = i === qs.length - 1 ? "Draw my map" : "Next";
+  $("q-answer").focus();
+}
+function nextQ(skip) {
+  const qs = S.pb.questions || [];
+  const i = Math.min(S.qi, qs.length - 1);
+  S.answers[i] = skip ? "" : $("q-answer").value; save();
+  if (i < qs.length - 1) { S.qi = i + 1; save(); drawQuestion(); }
+  else buildMap();
+}
+$("q-next").onclick = () => nextQ(false);
+$("q-skip").onclick = () => nextQ(true);
+
+/* ---------- 4 map ---------- */
+function marketText() {
+  if (!S.market) return "";
+  const m = S.market;
+  return "\nA rough market check you already gave them (rough; check it):\n- Who pays: " + str(m.who_pays) + "\n- Alternatives: " + str(m.alternatives) + "\n";
+}
+async function buildMap() {
+  const where = S.step === 2 ? "map-status" : "heard-status";
+  const m = await askJSON("MAP", { market: marketText() }, where, "Drawing your routes. This can take a minute or two");
+  if (!m || !Array.isArray(m.routes) || !m.routes.length) { if (m) $(where).append(h("p", { class: "err", text: "The map came back empty. Try again." })); return; }
+  m.routes = m.routes.slice(0, 4);
+  S.map = m; S.changeNote = ""; S.routeId = null; S.test = null; S.plan = null; S.reached = Math.max(S.reached, 3);
+  show(3);
+}
+function keyCounts() {
+  const c = {};
+  (S.map.routes || []).forEach((r) => { const seen = {}; (r.stops || []).forEach((s) => { const k = str(s.key); if (k && !seen[k]) { seen[k] = 1; c[k] = (c[k] || 0) + 1; } }); });
+  return c;
+}
+function drawMap() {
+  const m = S.map; if (!m) return;
+  $("map-dest").textContent = str(m.destination);
+  const ch = $("map-change"); ch.innerHTML = "";
+  if (str(S.changeNote)) ch.append(h("p", { class: "note", text: S.changeNote }));
+  drawSvg();
+  const counts = keyCounts();
+  const firstKey = str(m.first_move && m.first_move.key);
+  const box = $("routes"); box.innerHTML = "";
+  m.routes.forEach((r, ri) => {
+    const stops = h("ol", { class: "stops" });
+    (r.stops || []).forEach((s, si) => {
+      const k = str(s.key); const n = counts[k] || 1; const isFirst = k && k === firstKey;
+      const title = h("div", { class: "stop-title" }, str(s.title),
+        isFirst ? h("span", { class: "chip pink", text: "first move" }) : null,
+        n > 1 ? h("span", { class: "chip line", text: "on " + n + " routes" }) : null);
+      const meta = h("div", { class: "stop-meta" }, str(s.when) ? h("div", { class: "stop-when", text: str(s.when) }) : null, str(s.test), h("br"), "Cost: " + str(s.cost), h("br"), "Go on when: " + str(s.go_on_when));
+      const rbox = h("div", { class: "reroute-box hidden" });
+      const actions = h("div", { class: "stop-actions" },
+        h("button", { class: "btn small", onclick: () => openReroute(rbox, r, s, "this didn't work") }, "This didn't work"),
+        h("button", { class: "btn small", onclick: () => openReroute(rbox, r, s, "they learned something") }, "I learned something"));
+      stops.append(h("li", null, h("span", { class: "dot" + (isFirst ? " first" : (n > 1 ? " shared" : "")) }), h("div", null, title, meta, actions, rbox)));
+    });
+    const trade = h("dl", { class: "trade" },
+      h("dt", { text: "Money at risk first" }), h("dd", { text: str(r.money_at_risk_first) }),
+      h("dt", { text: "First paying customer" }), h("dd", { text: str(r.first_paying) }),
+      h("dt", { text: "Who owns it" }), h("dd", { text: str(r.ownership) }),
+      h("dt", { text: "Betting on" }), h("dd", { text: str(r.betting_on) }),
+      h("dt", { text: "Time to get there" }), h("dd", { text: str(r.time_to_destination) }));
+    const canvas = (r.canvas || []).map((c) => h("div", null, h("b", { text: str(c.block) + ": " }), str(c.line)));
+    const link = r.person && isVerified(r.person.source_url) ? safeLink(r.person.source_url, "Source") : null;
+    const person = r.person && str(r.person.name)
+      ? h("div", null, h("b", { text: "Someone who did something like this: " }), str(r.person.name) + ". " + str(r.person.story),
+          link ? h("div", { class: "unverified" }, "Found in a web search: ", link, ". Read it yourself before you lean on it.") : h("div", { class: "unverified", text: "Not checked against a source. Look it up before you lean on it." }))
+      : (r.person && str(r.person.story) ? h("div", null, h("b", { text: "Someone who did this: " }), str(r.person.story)) : null);
+    box.append(h("article", { class: "route", id: "route-" + ri },
+      h("div", { class: "head" }, h("span", { class: "num", text: "Route " + (ri + 1) }), h("h3", { text: str(r.name) }), h("p", { class: "small", text: str(r.summary) })),
+      trade, stops,
+      h("div", { class: "extra" }, h("b", { text: "How the business model differs" }), ...canvas,
+        str(r.scarcity_abundance) ? h("div", null, h("b", { text: "Scarcity or abundance: " }), str(r.scarcity_abundance)) : null, person),
+      h("div", { class: "foot" }, h("button", { class: "btn primary", onclick: () => pickRoute(r.id) }, "Take this route"))));
+  });
+  const hp = $("hard-parts"); hp.innerHTML = "";
+  (m.hard_parts || []).forEach((t) => hp.append(h("li", { text: str(t) })));
+  $("map-note").textContent = str(m.note);
+  drawMarket();
+}
+function drawSvg() {
+  const m = S.map, routes = m.routes || [], counts = keyCounts(), firstKey = str(m.first_move && m.first_move.key);
+  const W = 760, n = routes.length, laneGap = 92, top = 70, H = top + laneGap * (n - 1) + 80;
+  const midY = top + laneGap * (n - 1) / 2, x0 = 150, x1 = 610;
+  const NS = "http://www.w3.org/2000/svg";
+  const s = (tag, a, txt) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; return e; };
+  const cs = getComputedStyle(document.documentElement);
+  const ink = cs.getPropertyValue("--ink").trim(), muted = cs.getPropertyValue("--muted").trim(), pink = cs.getPropertyValue("--pink").trim(), line = cs.getPropertyValue("--line").trim(), card = cs.getPropertyValue("--card").trim();
+  const svg = s("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Map of " + n + " routes from where you are to your destination" });
+  svg.append(s("rect", { x: 10, y: midY - 26, width: 120, height: 52, fill: "none", stroke: ink, "stroke-width": 1.5 }));
+  svg.append(s("text", { x: 70, y: midY + 5, "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: ink, "font-family": "Atkinson Hyperlegible, sans-serif" }, "You are here"));
+  svg.append(s("rect", { x: 630, y: midY - 26, width: 120, height: 52, fill: "none", stroke: ink, "stroke-width": 2.5 }));
+  svg.append(s("text", { x: 690, y: midY + 5, "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: ink, "font-family": "Atkinson Hyperlegible, sans-serif" }, "Destination"));
+  // When every route starts with the first move, draw it once, at the fork.
+  const joint = firstKey && n > 1 && routes.every((r) => r.stops && r.stops.length && str(r.stops[0].key) === firstKey);
+  const fx = joint ? 175 : 130, lx = joint ? 220 : x0;
+  if (joint) svg.append(s("path", { d: "M130 " + midY + " H 175", stroke: line, "stroke-width": 3 }));
+  const spots = {};
+  routes.forEach((r, ri) => {
+    const y = top + laneGap * ri;
+    const d = "M" + fx + " " + midY + " C " + (fx + 15) + " " + midY + ", " + (fx + 15) + " " + y + ", " + lx + " " + y + " H " + x1 + " C 620 " + y + ", 620 " + midY + ", 630 " + midY;
+    svg.append(s("path", { d, fill: "none", stroke: line, "stroke-width": 3 }));
+    svg.append(s("text", { x: lx, y: y - 12, "font-size": 13, "font-weight": 700, fill: ink, "font-family": "Atkinson Hyperlegible, sans-serif" }, (ri + 1) + " · " + str(r.name)));
+    const st = (r.stops || []).slice(joint ? 1 : 0), k = st.length;
+    st.forEach((sp, si) => {
+      const x = lx + 30 + (k === 1 ? 0 : si * ((x1 - lx - 60) / (k - 1)));
+      const key = str(sp.key), shared = (counts[key] || 1) > 1, first = key && key === firstKey;
+      if (shared) (spots[key] = spots[key] || []).push([x, y]);
+      svg.append(s("circle", { cx: x, cy: y, r: first ? 9 : 7, fill: first ? pink : (shared ? card : muted), stroke: shared || first ? ink : "none", "stroke-width": first ? 2 : 3 }));
+      if (str(sp.when)) svg.append(s("text", { x, y: y + 22, "text-anchor": "middle", "font-size": 11, fill: muted, "font-family": "IBM Plex Mono, monospace" }, str(sp.when).slice(0, 18)));
+    });
+    if (str(r.time_to_destination)) svg.append(s("text", { x: x1, y: y - 12, "text-anchor": "end", "font-size": 12, fill: muted, "font-family": "IBM Plex Mono, monospace" }, str(r.time_to_destination).slice(0, 24)));
+  });
+  // Tie copies of a shared stop together with a dashed pink line.
+  Object.values(spots).forEach((pts) => { for (let i = 1; i < pts.length; i++) svg.insertBefore(s("line", { x1: pts.at(i - 1)[0], y1: pts.at(i - 1)[1], x2: pts.at(i)[0], y2: pts.at(i)[1], stroke: muted, "stroke-width": 1.5, "stroke-dasharray": "4 4" }), svg.firstChild); });
+  if (joint) {
+    svg.append(s("circle", { cx: 175, cy: midY, r: 11, fill: pink, stroke: ink, "stroke-width": 2 }));
+    svg.append(s("text", { x: 175, y: midY + 32, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: ink, "font-family": "Atkinson Hyperlegible, sans-serif" }, "first move"));
+  }
+  const box = $("map-svg"); box.innerHTML = ""; box.append(svg);
+}
+function openReroute(box, r, s, kind) {
+  box.innerHTML = ""; box.classList.remove("hidden");
+  const ta = h("textarea", { placeholder: kind === "this didn't work" ? "What happened? Messy is fine." : "What did you find out?" });
+  const status = h("div", { id: "rr-" + Math.random().toString(36).slice(2) });
+  box.append(h("label", { class: "small", text: kind === "this didn't work" ? "What happened when you tried it?" : "What did you learn?" }), ta,
+    h("div", { class: "row" }, h("button", { class: "btn small primary", onclick: async () => {
+      if (!str(ta.value)) return;
+      const out = await askJSON("REROUTE", { map: JSON.stringify(S.map), route: str(r.name), stop: str(s.title), kind, what: ta.value }, status.id, "Redrawing your map");
+      if (!out || !Array.isArray(out.routes) || !out.routes.length) return;
+      S.changeNote = (out.pivot ? "Pivot. " : "") + str(out.change_note);
+      delete out.change_note; delete out.pivot;
+      out.routes = out.routes.slice(0, 4);
+      S.map = out; S.routeId = null; S.test = null; S.plan = null; save(); drawMap(); window.scrollTo({ top: 0, behavior: "smooth" });
+    } }, "Redraw my map"), h("button", { class: "btn small", onclick: () => box.classList.add("hidden") }, "Cancel")), status);
+  ta.focus();
+}
+$("add-route").onclick = async () => {
+  const idea = $("own-route").value; if (!str(idea)) return;
+  const id = "r" + ((S.map.routes || []).length + 1);
+  const r = await askJSON("ADD_ROUTE", { map: JSON.stringify(S.map), idea, id }, "map-busy", "Filling in your route");
+  if (!r || !r.name) return;
+  r.id = id; S.map.routes.push(r); $("own-route").value = ""; save(); drawMap();
+  const el = $("route-" + (S.map.routes.length - 1)); if (el) el.scrollIntoView({ behavior: "smooth" });
+};
+$("go-market").onclick = async () => {
+  const m = await askJSON("MARKET", {}, "map-busy", "Running a rough market check");
+  if (!m) return; S.market = m; save(); drawMarket();
+};
+function drawMarket() {
+  const box = $("market-out"); box.innerHTML = "";
+  const m = S.market; if (!m) return;
+  box.append(h("p", null, h("b", { text: "Who pays: " }), str(m.who_pays)));
+  if (Array.isArray(m.rough_math) && m.rough_math.length) box.append(h("ol", { style: "margin:0;padding-left:20px" }, ...m.rough_math.map((t) => h("li", { text: str(t) }))));
+  box.append(h("p", null, h("b", { text: "Who else does this: " }), str(m.alternatives)));
+  if (Array.isArray(m.look_up)) box.append(h("p", null, h("b", { text: "Look up or ask this week:" })), h("ul", { style: "margin:0;padding-left:20px" }, ...m.look_up.map((t) => h("li", { text: str(t) }))));
+  const srcs = (Array.isArray(m.sources) ? m.sources : []).filter((s) => s && isVerified(s.url) && safeLink(s.url));
+  if (srcs.length) {
+    box.append(h("p", null, h("b", { text: "Sources from the web search:" })),
+      h("ul", { style: "margin:0;padding-left:20px" }, ...srcs.slice(0, 6).map((s) => h("li", null, str(s.for) ? str(s.for) + ": " : "", safeLink(s.url, str(s.title) || s.url)))));
+    box.append(h("p", { class: "unverified", text: "Lines with a source link came from a web search. Anything without one is unverified and rough. Check before you lean on it." }));
+  } else box.append(h("p", { class: "unverified", text: "No source came back for this check, so every number is unverified. Treat each one as a guess to check." }));
+}
+
+/* ---------- 5 test ---------- */
+function chosen() { return (S.map && S.map.routes || []).find((r) => r.id === S.routeId) || null; }
+async function pickRoute(id) {
+  S.routeId = id; S.test = null; S.plan = null; S.audience = null; save();
+  S.reached = Math.max(S.reached, 4); show(4);
+  const r = chosen();
+  const firstKey = str(S.map.first_move && S.map.first_move.key);
+  const firstStop = ((S.map.routes || []).flatMap((x) => x.stops || []).find((s) => str(s.key) === firstKey) || {}).title || "";
+  const t = await askJSON("TEST", { route: JSON.stringify(r), first: str(firstStop) }, "test-status", "Turning your first stop into a test");
+  if (!t) { $("back-map").classList.remove("hidden"); return; }
+  S.test = t; save(); drawTest();
+}
+function drawTest() {
+  const r = chosen();
+  $("test-route").textContent = r ? "Route: " + str(r.name) + ". " + str(r.summary) : "";
+  const box = $("test-out"); box.innerHTML = "";
+  $("back-map").classList.remove("hidden");
+  const t = S.test; if (!t) { $("go-ask").classList.add("hidden"); return; }
+  const fm = t.first_move || {};
+  box.append(h("div", { class: "card hot" }, h("h3", { text: "Your first move" }),
+    h("p", { style: "font-size:20px;font-weight:700", text: str(fm.what) }),
+    h("p", null, h("b", { text: "Who: " }), str(fm.who)), h("p", null, h("b", { text: "By: " }), str(fm.by_when)),
+    h("p", null, h("b", { text: "Proof you'll have: " }), str(t.proof))));
+  box.append(h("div", { class: "card" },
+    h("p", null, h("b", { text: "The riskiest guess: " }), str(t.riskiest_guess)),
+    h("p", null, h("b", { text: "The test (" + str(t.test_type) + "): " }), str(t.mvp)),
+    h("p", null, h("b", { text: "Try it on: " }), str(t.who)),
+    h("p", null, h("b", { text: "How: " }), str(t.how)),
+    h("p", null, h("b", { text: "Keep going if: " }), str(t.keep_going_if)),
+    h("p", null, h("b", { text: "Reroute if: " }), str(t.reroute_if))));
+  box.append(h("div", { class: "worst" }, h("h3", { text: "What's the worst that could happen?" }),
+    h("p", { text: str(t.worst_case) }),
+    h("p", null, h("b", { text: "Even then, you learn: " }), str(t.learn_anyway)),
+    h("p", { class: "small", text: "This is a test, not a verdict. Every answer is data, you'll run more than one, and the map redraws when you learn something." })));
+  $("aud-card").classList.remove("hidden");
+  $("aud-pitch").value = S.pitch || "";
+  drawAudience();
+  $("go-ask").classList.remove("hidden");
+}
+$("go-ask").onclick = () => { S.reached = Math.max(S.reached, 5); show(5); };
+$("aud-pitch").oninput = () => { S.pitch = $("aud-pitch").value; save(); };
+$("go-aud").onclick = async () => {
+  if (!str($("aud-pitch").value)) return;
+  S.pitch = $("aud-pitch").value; save();
+  const a = await askJSON("AUDIENCE", { test: JSON.stringify(S.test), pitch: S.pitch }, "test-status", "Gathering your audience");
+  if (!a || !Array.isArray(a.people)) return;
+  S.audience = a; save(); drawAudience();
+};
+function drawAudience() {
+  const box = $("aud-out"); box.innerHTML = "";
+  const a = S.audience; if (!a || !Array.isArray(a.people)) return;
+  box.append(h("div", { class: "aud" }, ...a.people.slice(0, 3).map((p) => h("div", null,
+    h("b", { text: str(p.who) }), h("p", { text: "\u201c" + str(p.reaction) + "\u201d" }),
+    h("p", { class: "small" }, h("b", { text: "They'd ask: " }), str(p.question)),
+    h("p", { class: "small muted" }, h("b", { text: "What would change their mind: " }), str(p.would_change_their_mind))))));
+  if (str(a.pattern)) box.append(h("p", { class: "note", text: str(a.pattern) }));
+  box.append(h("p", { class: "unverified", text: "Practice only. These are AI people, so their reactions don't count as evidence. Real people will surprise you." }));
+}
+$("back-map").onclick = () => show(3);
+
+/* ---------- 6 ask ---------- */
+function moveText() { const fm = (S.test && S.test.first_move) || {}; return str(fm.what) + " (who: " + str(fm.who) + "; by " + str(fm.by_when) + ")"; }
+function drawAsk() {
+  const fm = (S.test && S.test.first_move) || {};
+  const b = $("ask-move"); b.innerHTML = "";
+  b.append(h("h3", { text: "Your first move" }), h("p", { style: "font-weight:700", text: str(fm.what) }), h("p", { class: "small muted", text: "Who: " + str(fm.who) + " · By: " + str(fm.by_when) }));
+  $("draft").value = S.draft || "";
+  $("critique").textContent = S.critique || "";
+  $("rp-card").classList.toggle("hidden", !S.critique && !S.chat.length);
+  $("rp-who").textContent = "Claude plays " + (str(fm.who) || "the person you're asking") + ". Busy, a little skeptical, fair.";
+  drawChat();
+  $("rp-feedback").textContent = S.feedback || "";
+}
+$("draft").oninput = () => { S.draft = $("draft").value; save(); };
+$("go-critique").onclick = async () => {
+  if (!str($("draft").value)) return;
+  S.draft = $("draft").value; save();
+  const out = h("p");
+  $("critique").innerHTML = ""; $("critique").append(out);
+  const t = await askText("CRITIQUE", { move: moveText(), draft: S.draft }, "ask-status", "Reading your ask", out);
+  if (t) { S.critique = t; save(); $("rp-card").classList.remove("hidden"); }
+};
+function drawChat() {
+  const c = $("chat"); c.innerHTML = "";
+  S.chat.forEach((m) => c.append(h("div", { class: "bubble " + (m.role === "user" ? "me" : "them"), text: m.content })));
+  c.scrollTop = c.scrollHeight;
+}
+$("rp-send").onclick = async () => {
+  const say = $("rp-say").value; if (!str(say)) return;
+  S.chat.push({ role: "user", content: say }); $("rp-say").value = ""; save(); drawChat();
+  const fm = (S.test && S.test.first_move) || {};
+  const live = h("div", { class: "bubble them" }); $("chat").append(live);
+  const t = await askText("ROLEPLAY", { who: str(fm.who) || "the person they're asking", what: str(fm.what) }, "ask-status", "They're thinking", live, S.chat);
+  if (t) { S.chat.push({ role: "assistant", content: t }); save(); }
+  drawChat();
+};
+$("rp-done").onclick = async () => {
+  if (!S.chat.length) return;
+  const chat = S.chat.map((m) => (m.role === "user" ? "Student: " : "Them: ") + m.content).join("\n");
+  const out = h("p"); $("rp-feedback").innerHTML = ""; $("rp-feedback").append(out);
+  const t = await askText("FEEDBACK", { move: moveText(), chat }, "ask-status", "Stepping out of character", out);
+  if (t) { S.feedback = t; save(); }
+};
+$("go-plan").onclick = async () => {
+  if (!S.test) return;
+  S.reached = Math.max(S.reached, 6); show(6);
+  if (!S.plan) {
+    const p = await askJSON("PLAN", { route: JSON.stringify(chosen()), test: JSON.stringify(S.test) }, "plan-status", "Putting your plan on one page");
+    if (p) { S.plan = p; save(); drawPlan(); }
+  }
+};
+
+/* ---------- 7 plan ---------- */
+function planText() {
+  const r = chosen() || {}, t = S.test || {}, fm = t.first_move || {}, p = S.plan || {}, pb = S.pb || {};
+  const L = [];
+  L.push("MY FIRST MOVE: " + str(fm.what) + " | Who: " + str(fm.who) + " | By: " + str(fm.by_when));
+  if (str(S.draft)) L.push("My ask, in my words: " + str(S.draft));
+  L.push("", "THE DREAM: " + str(pb.dream), "Who it's for: " + str(pb.persona), "What I already have: " + str(pb.have), "What I can afford to lose: " + str(pb.loss));
+  L.push("", "MY ROUTE: " + str(r.name) + ". " + str(r.summary));
+  L.push("Money at risk first: " + str(r.money_at_risk_first) + " | First paying customer: " + str(r.first_paying) + " | Who owns it: " + str(r.ownership));
+  L.push("Time to get there: " + str(r.time_to_destination));
+  (r.stops || []).forEach((s, i) => L.push((i + 1) + ". " + str(s.title) + (str(s.when) ? " (" + str(s.when) + ")" : "") + ": " + sent(s.test) + " Go on when: " + str(s.go_on_when)));
+  L.push("", "THE TEST: " + str(t.mvp), "Riskiest guess: " + str(t.riskiest_guess), "Keep going if: " + str(t.keep_going_if), "Reroute if: " + str(t.reroute_if), "Worst that could happen: " + str(t.worst_case) + " Even then I learn: " + str(t.learn_anyway));
+  if (Array.isArray(p.canvas)) { L.push("", "BUSINESS MODEL CANVAS (weakest: " + str(p.weakest_block) + ")"); p.canvas.forEach((c) => L.push("- " + str(c.block) + ": " + str(c.line))); }
+  if (p.pixar) L.push("", "PIXAR PITCH", "Every day, " + str(p.pixar.every_day), "One day, " + str(p.pixar.one_day), "Because of that, " + str(p.pixar.because_of_that), "Until finally, " + str(p.pixar.until_finally));
+  const others = (S.map && S.map.routes || []).filter((x) => x.id !== S.routeId).map((x) => str(x.name));
+  if (others.length) L.push("", "OTHER ROUTES I KEPT: " + others.join("; "));
+  L.push("", aiLine());
+  return L.join("\n");
+}
+function aiLine() { return "AI use: I used Claude (Opus 5.5, through the From Here to There tool) to play back my idea, draw route options, turn my first stop into a test and rehearse my ask. I chose the route and wrote the ask myself."; }
+function drawPlan() {
+  const box = $("plan"); box.innerHTML = "";
+  const r = chosen() || {}, t = S.test || {}, fm = t.first_move || {}, p = S.plan, pb = S.pb || {};
+  box.append(h("div", { class: "first-move" }, h("h2", { text: "My first move" }), h("p", { class: "big", text: str(fm.what) }),
+    h("p", { text: "Who: " + str(fm.who) + " · By: " + str(fm.by_when) }),
+    str(S.draft) ? h("p", null, h("b", { text: "My ask, in my words: " }), str(S.draft)) : null));
+  box.append(h("div", { class: "card" }, h("h3", { text: "The dream" }), h("p", { text: str(pb.dream) }),
+    h("p", { class: "small" }, h("b", { text: "Who it's for: " }), str(pb.persona)),
+    h("p", { class: "small" }, h("b", { text: "What I already have: " }), str(pb.have)),
+    h("p", { class: "small" }, h("b", { text: "What I can afford to lose: " }), str(pb.loss)),
+    h("p", { class: "mine", text: Object.keys(S.edited).length ? "Lines I rewrote are in my words; the rest is Claude's playback, which I confirmed." : "Claude's playback, which I confirmed." })));
+  const ol = h("ol", { style: "margin:0;padding-left:20px;display:grid;gap:4px" }, ...(r.stops || []).map((s) => h("li", null, h("b", { text: str(s.title) + (str(s.when) ? " (" + str(s.when) + ")" : "") + ": " }), sent(s.test) + " Go on when: " + str(s.go_on_when))));
+  box.append(h("div", { class: "card" }, h("h3", { text: "My route: " + str(r.name) }), h("p", { class: "small", text: str(r.summary) }),
+    h("p", { class: "small muted", text: "Money at risk first: " + str(r.money_at_risk_first) + " · First paying customer: " + str(r.first_paying) + " · Who owns it: " + str(r.ownership) + " · Time to get there: " + str(r.time_to_destination) }), ol));
+  box.append(h("div", { class: "card" }, h("h3", { text: "The test" }), h("p", { text: str(t.mvp) }),
+    h("p", { class: "small" }, h("b", { text: "Riskiest guess: " }), str(t.riskiest_guess)),
+    h("p", { class: "small" }, h("b", { text: "Keep going if: " }), str(t.keep_going_if), h("br"), h("b", { text: "Reroute if: " }), str(t.reroute_if)),
+    h("p", { class: "small" }, h("b", { text: "Worst case: " }), str(t.worst_case) + " ", h("b", { text: "Even then I learn: " }), str(t.learn_anyway))));
+  if (p && Array.isArray(p.canvas)) {
+    const weak = str(p.weakest_block).toLowerCase();
+    box.append(h("div", { class: "card" }, h("h3", { text: "Business Model Canvas" }),
+      h("div", { class: "bmc" }, ...p.canvas.map((c) => h("div", { class: str(c.block).toLowerCase() === weak ? "weak" : "" }, h("b", { text: str(c.block) }), str(c.line)))),
+      h("p", { class: "small" }, h("b", { text: "Most likely to break: " }), str(p.weakest_block) + ". " + str(p.weakest_why))));
+  }
+  if (p && p.pixar) box.append(h("div", { class: "card pixar" }, h("h3", { text: "Pixar pitch" }),
+    h("p", null, h("b", { text: "Every day, " }), str(p.pixar.every_day)), h("p", null, h("b", { text: "One day, " }), str(p.pixar.one_day)),
+    h("p", null, h("b", { text: "Because of that, " }), str(p.pixar.because_of_that)), h("p", null, h("b", { text: "Until finally, " }), str(p.pixar.until_finally))));
+  const others = (S.map && S.map.routes || []).filter((x) => x.id !== S.routeId);
+  if (others.length) box.append(h("div", { class: "card quiet" }, h("h3", { text: "Other routes I kept" }), ...others.map((x) => h("p", { class: "small" }, h("b", { text: str(x.name) + ": " }), str(x.summary)))));
+  box.append(h("p", { class: "small muted", text: aiLine() }));
+  updateMailto();
+}
+async function copyText(text, msgEl, manual) {
+  try { await navigator.clipboard.writeText(text); msgEl.textContent = "Copied."; manual.classList.add("hidden"); }
+  catch (e) { msgEl.textContent = "Your browser blocked copying. Select the text below and copy it."; manual.value = text; manual.classList.remove("hidden"); manual.select(); }
+}
+$("copy-plan").onclick = () => copyText(planText(), $("copy-msg"), $("manual-copy"));
+$("back-map2").onclick = () => show(3);
+function sendBody(max) {
+  const q = str($("jim-q").value) || "(no question, just sharing)";
+  let p = planText(); if (max && p.length > max) p = p.slice(0, max) + "\n[cut short for email]";
+  return "My question: " + q + "\n\n" + p;
+}
+function updateMailto() {
+  $("mailto").href = "mailto:" + encodeURIComponent(JIM_EMAIL) + "?subject=" + encodeURIComponent("ENTP 3000: a question about my plan") + "&body=" + encodeURIComponent(sendBody(1500));
+}
+$("jim-q").oninput = updateMailto;
+$("copy-send").onclick = () => copyText(sendBody(), $("copy-msg"), $("manual-copy"));
+$("jim-addr").textContent = JIM_EMAIL;
+
+/* calendar */
+function icsDate(d) { const p = (n) => String(n).padStart(2, "0"); return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + "T" + p(d.getUTCHours()) + p(d.getUTCMinutes()) + "00Z"; }
+$("ics").onclick = async () => {
+  const fm = (S.test && S.test.first_move) || {};
+  const d = deadlineDate(new Date()), e = new Date(d.getTime() + 30 * 60 * 1000);
+  const esc = (t) => str(t).replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ENTP 3000//From Here to There//EN", "BEGIN:VEVENT",
+    "UID:" + Date.now() + "@work-backward-map", "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
+    "DTSTART:" + icsDate(d), "DTEND:" + icsDate(e),
+    "SUMMARY:" + esc("First move: " + str(fm.what)), "DESCRIPTION:" + esc("Who: " + str(fm.who) + ". Proof: " + str(S.test && S.test.proof)),
+    "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  try {
+    const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+    const a = h("a", { href: url, download: "my-first-move.ics" }); document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    $("copy-msg").textContent = "Saved. Open the file to add it to your calendar.";
+  }
+  catch (err) { $("copy-msg").textContent = "The calendar file didn't save. Put it on your calendar yourself: " + fmtDT(d) + "."; }
+};
+
+/* fallback */
+$("copy-fallback").onclick = () => copyText($("fallback-text").value, $("fallback-msg"), $("fallback-text"));
+$("fallback-back").onclick = () => show(S.step || 0);
+$("pass-forget").onclick = () => { setCode(""); $("pass-forget").textContent = "Passcode cleared. You'll be asked again."; };
+
+/* ---------- start ---------- */
+const saved = load();
+if (saved && (saved.pb || str(saved.dump))) {
+  $("resume").classList.remove("hidden"); $("start-over").classList.remove("hidden");
+  $("dump").value = saved.dump || ""; $("push").checked = !!saved.push;
+  $("resume").onclick = () => { S = saved; if (!Array.isArray(S.srcUrls)) S.srcUrls = []; show(S.step || 0); };
+  $("start-over").onclick = () => { S = blank(); save(); $("dump").value = ""; $("push").checked = false; $("resume").classList.add("hidden"); $("start-over").classList.add("hidden"); drawRail(); };
+}
+drawRail();
+})();
+</script>
+</body>
+</html>

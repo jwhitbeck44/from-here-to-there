@@ -1,0 +1,11 @@
+node_modules/
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+*.key
+SUMMARY-*.md
+secrets*
+.wrangler/
+_local/
+test-results/

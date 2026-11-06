@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "from-here-to-there-relay",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+
+  // Never log or keep what students type. Only counters are stored (Durable Object).
+  "observability": { "enabled": false },
+  "workers_dev": true,
+
+  "durable_objects": { "bindings": [{ "name": "COUNTER", "class_name": "Counter" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Counter"] }],
+
+  // Change a limit: edit the number here, then run `npx wrangler deploy` in this folder.
+  "vars": {
+    "PER_CODE_DAILY": "60",       // calls per passcode per day (Mountain Time day)
+    "GLOBAL_DAILY": "600",        // calls per day across everyone
+    "BAD_TRIES_PER_HOUR": "20",   // wrong passcodes allowed per connection per hour
+    "ALLOWED_ORIGINS": "https://jwhitbeck44.github.io",  // comma-separated list; set to the real GitHub Pages origin
+    "ALLOW_LOCALHOST": "1"        // "1" lets http://localhost and 127.0.0.1 call the relay (testing). "0" turns that off.
+  }
+  // Secrets (not in this file): ANTHROPIC_API_KEY, PASSCODES, ADMIN_TOKEN
+}
