@@ -1,4 +1,4 @@
-# Checks against the deployed Worker: wrong passcode, one full live run with cost, and the per-passcode cap.
+﻿# Checks against the deployed Worker: wrong passcode, one full live run with cost, and the per-passcode cap.
 # Costs about the price of one student session (a dollar or two at most). Run after deploy.ps1.
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot
@@ -21,7 +21,7 @@ curl.exe -s -H "X-Admin-Token: $admin" "$relay/api/usage"; ""
 
 Write-Host "== cap test: set the per-passcode limit to 1 more than today's count, then exceed it =="
 $u = curl.exe -s -H "X-Admin-Token: $admin" "$relay/api/usage" | ConvertFrom-Json
-$today = $u.today; $used = $u.calls.$today.zakston
+$today = $u.today; $used = [int]$u.calls.$today.zakston
 $low = $used + 1
 Set-Location "$root\worker"
 npx wrangler deploy --var "PER_CODE_DAILY:$low" | Out-Null
@@ -36,3 +36,4 @@ npx wrangler deploy | Out-Null
 Set-Location $root
 curl.exe -s -H "X-Admin-Token: $admin" "$relay/api/usage" | ConvertFrom-Json | Select-Object -ExpandProperty limits
 node test/relay-client.mjs one CRITIQUE | Select-String '"status"'
+

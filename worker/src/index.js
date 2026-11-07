@@ -171,7 +171,7 @@ export default {
     // Admin: today's counts and token totals. curl -H "X-Admin-Token: ..." https://<worker>/api/usage
     if (url.pathname === "/api/usage" && request.method === "GET") {
       const t = request.headers.get("X-Admin-Token") || "";
-      if (!env.ADMIN_TOKEN || !sameBytes(await sha(t), await sha(env.ADMIN_TOKEN))) return json({ error: "no" }, 401);
+      if (!env.ADMIN_TOKEN || !sameBytes(await sha(t), await sha(String(env.ADMIN_TOKEN).trim()))) return json({ error: "no" }, 401);
       return json({ ...(await stub.report(denverDay())), limits: { perCodeDaily: Number(env.PER_CODE_DAILY) || 60, globalDaily: Number(env.GLOBAL_DAILY) || 600 } });
     }
     if (request.method !== "POST" || (url.pathname !== "/api/step" && url.pathname !== "/api/check")) return json({ error: "not_found" }, 404, cors.headers);
@@ -200,7 +200,7 @@ export default {
     let upstream;
     try {
       upstream = await fetch(API_URL, { method: "POST", signal: ctl.signal,
-        headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": env.ANTHROPIC_VERSION || "2026-10-21", "content-type": "application/json" },
+        headers: { "x-api-key": String(env.ANTHROPIC_API_KEY || "").trim(), "anthropic-version": env.ANTHROPIC_VERSION || "2026-10-21", "content-type": "application/json" },
         body: JSON.stringify(buildRequest(env, v)) });
     } catch { return json({ error: "upstream" }, 502, cors.headers); }
     if (!upstream.ok) {
