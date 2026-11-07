@@ -1,4 +1,4 @@
-# Deploys the relay and sets its secrets. Run after `npx wrangler login` (once). Never prints the API key.
+﻿# Deploys the relay and sets its secrets. Run after `npx wrangler login` (once). Never prints the API key.
 #   cd work-backward-tool\api-v1 ; .\deploy.ps1
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
@@ -27,7 +27,8 @@ npx wrangler secret list
 
 # Point the page at the Worker and rebuild.
 Set-Location $root
-(@{ relayUrl = $url } | ConvertTo-Json) | Set-Content config.json -Encoding utf8
+[IO.File]::WriteAllText("$root\config.json", "{`n  `"relayUrl`": `"$url`"`n}`n", (New-Object Text.UTF8Encoding $false))
 node build.mjs
 Write-Host "`nWorker: $url"
 Write-Host "Next: run test\post-deploy.ps1, then push docs/ to GitHub (see SUMMARY)."
+
