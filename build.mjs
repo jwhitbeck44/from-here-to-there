@@ -1,9 +1,9 @@
-// Build: prompts.js -> worker/src/prompts.gen.js (COACH, NOTE, PUSH, STEPS) and docs/index.html (FALLBACK + relay URL).
+// Build: prompts.js -> worker/src/prompts.gen.js (COACH, NOTE, PUSH, STEPS) and docs/index.html (FALLBACK, TAGS, relay URL).
 // Usage: node build.mjs            (reads config.json)
 import fs from "node:fs";
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
-const { COACH, NOTE, PUSH, STEPS, FALLBACK } = require("./prompts.js");
+const { COACH, NOTE, PUSH, STEPS, FALLBACK, TAGS } = require("./prompts.js");
 const cfg = JSON.parse(fs.readFileSync(new URL("./config.json", import.meta.url), "utf8"));
 
 fs.writeFileSync(new URL("./worker/src/prompts.gen.js", import.meta.url),
@@ -12,7 +12,8 @@ fs.writeFileSync(new URL("./worker/src/prompts.gen.js", import.meta.url),
   `export const STEPS = ${JSON.stringify(STEPS, null, 1)};\n`);
 
 let html = fs.readFileSync(new URL("./index.src.html", import.meta.url), "utf8");
-if (!html.includes("/*FALLBACK*/") || !html.includes("/*RELAY*/")) throw new Error("markers missing in index.src.html");
-html = html.replace("/*FALLBACK*/", () => `const FALLBACK = ${JSON.stringify(FALLBACK)};`).replace("/*RELAY*/", () => cfg.relayUrl.replace(/\/+$/, ""));
+if (!html.includes("/*FALLBACK*/") || !html.includes("/*RELAY*/") || !html.includes("/*TAGS*/")) throw new Error("markers missing in index.src.html");
+html = html.replace("/*FALLBACK*/", () => `const FALLBACK = ${JSON.stringify(FALLBACK)};`)
+  .replace("/*TAGS*/", () => `const TAGS = ${JSON.stringify(TAGS.map(({ id, label }) => ({ id, label })))};`).replace("/*RELAY*/", () => cfg.relayUrl.replace(/\/+$/, ""));
 fs.writeFileSync(new URL("./docs/index.html", import.meta.url), html);
 console.log("built: relay =", cfg.relayUrl);

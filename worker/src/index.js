@@ -11,21 +11,20 @@ const MAX_BODY = 160_000;
 
 // max = max_tokens ceiling (it includes the model's thinking, so keep headroom). search = web_search max_uses.
 const STEP_CFG = {
-  PLAYBACK:  { vars: ["dump"], max: 8000, search: 0 },
-  MAP:       { vars: ["market"], max: 24000, search: 3 },
-  REROUTE:   { vars: ["map", "route", "stop", "kind", "what"], max: 24000, search: 2 },
-  ADD_ROUTE: { vars: ["map", "idea", "id"], max: 12000, search: 2 },
-  TEST:      { vars: ["route", "first"], max: 10000, search: 0 },
-  AUDIENCE:  { vars: ["test", "pitch"], max: 8000, search: 0 },
-  CRITIQUE:  { vars: ["move", "draft"], max: 5000, search: 0 },
-  ROLEPLAY:  { vars: ["who", "what"], max: 3000, search: 0, chat: true },
-  FEEDBACK:  { vars: ["move", "chat"], max: 3000, search: 0 },
-  PLAN:      { vars: ["route", "test"], max: 10000, search: 0 },
-  MARKET:    { vars: [], max: 12000, search: 4 },
+  PLAYBACK:     { vars: ["dump"], max: 8000, search: 0 },
+  MAP:          { vars: ["market"], max: 16000, search: 0 },
+  ROUTE_DETAIL: { vars: ["map", "route", "keys"], max: 16000, search: 3 },
+  REROUTE:      { vars: ["map", "route", "stop", "kind", "what"], max: 16000, search: 0 },
+  ADD_ROUTE:    { vars: ["map", "idea", "id"], max: 8000, search: 0 },
+  TEST:         { vars: ["route", "stop"], max: 10000, search: 0 },
+  ROLEPLAY:     { vars: ["who", "what"], max: 3000, search: 0, chat: true },
+  FEEDBACK:     { vars: ["move", "chat"], max: 3000, search: 0 },
+  PLAN:         { vars: ["route", "test"], max: 10000, search: 0 },
+  MARKET:       { vars: [], max: 12000, search: 4 },
 };
 const COMMON_VARS = ["cards", "answers", "now", "deadline"];
-const VAR_MAX = { dump: 8000, cards: 6000, answers: 6000, map: 40000, route: 20000, test: 12000, chat: 20000, market: 5000,
-  draft: 4000, pitch: 4000, what: 4000, idea: 4000, move: 1500, who: 400, stop: 300, first: 400, kind: 40, id: 10, now: 80, deadline: 80 };
+const VAR_MAX = { dump: 8000, cards: 6000, answers: 6000, map: 30000, route: 20000, test: 12000, chat: 20000, market: 5000,
+  what: 4000, idea: 4000, keys: 4000, move: 1500, who: 400, stop: 2000, kind: 40, id: 10, now: 80, deadline: 80 };
 
 const enc = new TextEncoder();
 const json = (obj, status = 200, headers = {}) => new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", ...headers } });

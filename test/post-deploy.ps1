@@ -27,13 +27,13 @@ Set-Location "$root\worker"
 npx wrangler deploy --var "PER_CODE_DAILY:$low" | Out-Null
 Set-Location $root
 Write-Host "limit is now $low (used $used). Two calls: first should pass, second should be refused."
-node test/relay-client.mjs one CRITIQUE | Select-String '"status"'
-node test/relay-client.mjs one CRITIQUE | Select-String '"status"|passcode_cap'
+node test/relay-client.mjs one PLAYBACK | Select-String '"status"'
+node test/relay-client.mjs one PLAYBACK | Select-String '"status"|passcode_cap'
 
 Write-Host "== restore the limit and confirm =="
 Set-Location "$root\worker"
 npx wrangler deploy | Out-Null
 Set-Location $root
 curl.exe -s -H "X-Admin-Token: $admin" "$relay/api/usage" | ConvertFrom-Json | Select-Object -ExpandProperty limits
-node test/relay-client.mjs one CRITIQUE | Select-String '"status"'
+node test/relay-client.mjs one PLAYBACK | Select-String '"status"'
 
