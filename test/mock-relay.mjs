@@ -84,10 +84,9 @@ export async function mockRelay(page, pageUrl, { delay = {} } = {}) {
     const u = r.request().url();
     if (u.startsWith(pageUrl) || u.startsWith("data:") || u.startsWith("blob:")) return r.continue();
     if (u.startsWith(RELAY)) {
-      const req = r.request(), code = req.headers()["x-passcode"] || "";
+      const req = r.request();
       if (mode === "down") return r.abort();
-      if (u.endsWith("/api/check")) return code === GOOD ? r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }) : r.fulfill({ status: 401, contentType: "application/json", body: '{"error":"bad_passcode"}' });
-      if (code !== GOOD) return r.fulfill({ status: 401, contentType: "application/json", body: '{"error":"bad_passcode"}' });
+      if (u.endsWith("/api/check")) return r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' });
       const b = JSON.parse(req.postData());
       calls.push({ step: b.step, vars: b.vars, messages: b.messages });
       if (mode === "cap") return r.fulfill({ status: 429, contentType: "application/json", body: '{"error":"passcode_cap"}' });

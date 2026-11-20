@@ -26,16 +26,11 @@ const clip = () => page.evaluate(() => navigator.clipboard.readText());
 const state = () => page.evaluate(() => JSON.parse(localStorage.getItem("wbm-state")));
 await page.goto(PAGE);
 
-// passcode gate: wrong code, then right code
+// no passcode: the first call goes straight through
 await page.fill("#dump", "i want to build indoor courts in the springs. i coach.");
 await page.click("#go-playback");
-ok(await page.isVisible("#pass-overlay"), "asks for a passcode on the first call");
-await page.fill("#pass-in", "wrong-code-0000"); await page.click("#pass-go");
-await page.waitForFunction(() => /didn't work/.test(document.getElementById("pass-msg").textContent));
-ok(!(await page.evaluate(() => localStorage.getItem("fht-passcode"))), "wrong passcode is not remembered");
-await page.fill("#pass-in", GOOD); await page.click("#pass-go");
 await page.waitForSelector("#heard-cards .card");
-ok((await page.evaluate(() => localStorage.getItem("fht-passcode"))) === GOOD, "right passcode is remembered in localStorage");
+ok(!(await page.isVisible("#pass-overlay")) && (await page.evaluate(() => document.getElementById("pass-overlay"))) === null, "no passcode prompt appears");
 ok(calls[0].step === "PLAYBACK" && calls[0].vars.dump.includes("indoor courts") && !("prompt" in calls[0]), "PLAYBACK sends a step name and the student's inputs, not a prompt");
 
 // map with 6 routes in short form
@@ -194,7 +189,7 @@ ok(true, "a new route's details load on tap like the others");
 setMode("cap");
 await page.fill("#own-route", "my own route"); await page.click("#add-route");
 await page.waitForSelector("#s-fallback:not(.hidden)");
-ok(/used all of your Claude calls for today/.test(await page.textContent("#fallback-why")), "per-passcode cap shows the fallback with a plain message");
+ok(/used all of your Claude calls for today/.test(await page.textContent("#fallback-why")), "per-connection cap shows the fallback with a plain message");
 setMode("down");
 await page.click("#fallback-back"); await page.waitForSelector("#routes .rl");
 await page.click("#add-route");

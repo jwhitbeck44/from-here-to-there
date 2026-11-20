@@ -1,6 +1,6 @@
 // From Here to There relay.
 // The browser sends a step name plus the student's inputs. This Worker fills the prompt itself (prompts.gen.js),
-// so a leaked passcode can only run this tool's steps, not act as a general Opus proxy.
+// so anyone with the link can only run this tool's steps, not act as a general Opus proxy.
 // It never logs or stores what students type. The only thing kept is counters (Durable Object).
 import { COACH, NOTE, PUSH, STEPS } from "./prompts.gen.js";
 import { Counter } from "./counter.js";
@@ -31,31 +31,18 @@ const json = (obj, status = 200, headers = {}) => new Response(JSON.stringify(ob
 
 function corsFor(request, env) {
   const origin = request.headers.get("Origin");
-  if (!origin) return { ok: true, headers: {} };   // not a browser (curl, tests); the passcode still applies
+  if (!origin) return { ok: true, headers: {} };   // not a browser (curl, tests); the daily limits still apply
   const allowed = (env.ALLOWED_ORIGINS || "").split(",").map((s) => s.trim().replace(/\/+$/, "")).filter(Boolean);
   const local = env.ALLOW_LOCALHOST === "1" && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
   if (!allowed.includes(origin) && !local) return { ok: false, headers: {} };
   return { ok: true, headers: {
     "Access-Control-Allow-Origin": origin, "Vary": "Origin",
-    "Access-Control-Allow-Headers": "Content-Type, X-Passcode", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Max-Age": "86400" } };
+    "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Max-Age": "86400" } };
 }
 
 async function sha(text) { return new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(text))); }
 function sameBytes(a, b) { let d = a.length ^ b.length; for (let i = 0; i < a.length && i < b.length; i++) d |= a[i] ^ b[i]; return d === 0; }
 const hex = (u8) => [...u8].map((b) => b.toString(16).padStart(2, "0")).join("");
-
-// PASSCODES secret: "label=code" pairs separated by commas or newlines. Returns the label for a matching code, else null.
-async function labelFor(env, candidate) {
-  if (!candidate || candidate.length > 100) return null;
-  const want = await sha(candidate);
-  let found = null;
-  for (const part of String(env.PASSCODES || "").split(/[,\n\r]+/)) {
-    const m = part.trim().match(/^([A-Za-z0-9_-]{1,32})=(\S{8,100})$/);
-    if (!m) continue;
-    if (sameBytes(want, await sha(m[2])) && !found) found = m[1];   // keep looping so timing doesn't reveal which entry matched
-  }
-  return found;
-}
 
 function denverDay() { return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Denver", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); }
 const fill = (t, vars) => t.replace(/\{\{(\w+)\}\}/g, (m, k) => (k in vars ? vars[k] : ""));
@@ -175,12 +162,9 @@ export default {
     }
     if (request.method !== "POST" || (url.pathname !== "/api/step" && url.pathname !== "/api/check")) return json({ error: "not_found" }, 404, cors.headers);
 
-    // Who is this? Rate-limit wrong guesses per connection (counter only; the address is hashed and expires).
+    // No passcode. Each connection is identified by a hashed IP (counter only; the address itself is never stored).
     const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-    const ipKey = hex(await sha("fht|" + ip)).slice(0, 16);
-    if (await stub.isBlocked(ipKey, Number(env.BAD_TRIES_PER_HOUR) || 20)) return json({ error: "too_many_tries" }, 429, cors.headers);
-    const label = await labelFor(env, request.headers.get("X-Passcode") || "");
-    if (!label) { await stub.bad(ipKey); return json({ error: "bad_passcode" }, 401, cors.headers); }
+    const label = hex(await sha("fht|" + ip)).slice(0, 16);
     if (url.pathname === "/api/check") return json({ ok: true }, 200, cors.headers);
 
     // Check the request is one of this tool's steps with sane inputs.

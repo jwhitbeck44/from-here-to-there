@@ -13,11 +13,10 @@
 
   // Change a limit: edit the number here, then run `npx wrangler deploy` in this folder.
   "vars": {
-    "PER_CODE_DAILY": "60",       // calls per passcode per day (Mountain Time day)
+    "PER_CODE_DAILY": "150",      // calls per connection (hashed IP) per day (Mountain Time day). Name kept from the passcode version.
     "GLOBAL_DAILY": "600",        // calls per day across everyone
-    "BAD_TRIES_PER_HOUR": "20",   // wrong passcodes allowed per connection per hour
-    "ALLOWED_ORIGINS": "https://jwhitbeck44.github.io",  // comma-separated list; set to the real GitHub Pages origin
+        "ALLOWED_ORIGINS": "https://jwhitbeck44.github.io",  // comma-separated list; set to the real GitHub Pages origin
     "ALLOW_LOCALHOST": "1"        // "1" lets http://localhost and 127.0.0.1 call the relay (testing). "0" turns that off.
   }
-  // Secrets (not in this file): ANTHROPIC_API_KEY, PASSCODES, ADMIN_TOKEN
+  // Secrets (not in this file): ANTHROPIC_API_KEY, ADMIN_TOKEN
 }

@@ -357,17 +357,7 @@ footer { color: var(--muted); font-size: 13px; padding: 20px 0 40px; font-family
 
   </div>
 </main>
-<footer><div class="wrap">Your answers stay in this browser. To get answers back, what you type goes through a small relay run by Jim to Claude (Anthropic). The relay does not save it. A prototype for ENTP 3000, UCCS. <button class="btn small" id="pass-forget" type="button">Forget my passcode</button></div></footer>
-<div id="pass-overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="pass-h">
-  <div class="pass-box">
-    <h2 id="pass-h">Enter your passcode</h2>
-    <p>Jim gave you a passcode for this tool. You only enter it once on this device.</p>
-    <input id="pass-in" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Passcode">
-    <div class="row"><button class="btn primary" id="pass-go" type="button">Continue</button><button class="btn" id="pass-cancel" type="button">Cancel</button></div>
-    <p id="pass-msg" class="small muted" role="status"></p>
-  </div>
-</div>
-
+<footer><div class="wrap">Your answers stay in this browser. To get answers back, what you type goes through a small relay run by Jim to Claude (Anthropic). The relay does not save it. A prototype for ENTP 3000, UCCS.</div></footer>
 <script>
 const FALLBACK = "Here's what I want to build, typed fast and messy:\n<<<\n{{dump}}\n>>>\n\nYou're my planning coach for my entrepreneurship class (ENTP 3000, Entrepreneurship for Everyone). Talk like a coach who believes in me and is honest with me: informal, warm, a little provocative, short sentences, no hype, no jargon.\n\nDo these one at a time, and check in with me after each:\n1. Play back what you heard (the dream fully built, who it's for, what I already have, what I could afford to lose). Ask up to 4 questions about anything missing. Wait for my answers.\n2. Draw 3 to 6 genuinely different routes (don't pad) from where I am to the dream. For each: money at risk first, time to first paying customer, who owns it, what it's betting on, rough total time, and 3 to 5 stops with a rough \"when,\" where each stop is a small test with the result that says keep going. Mark any stop that's on more than one route.\n3. Suggest the shared stop as my first move within 48 hours: a real-world act, legal as written, under 2 hours, $20 or less.\n4. When I pick a route, turn its first stop into a test (an MVP: conversations, a paper sketch, a landing page with a sign-up button, a few clickable screens, or a manual run by hand). Tell me the worst that could realistically happen and what I'd learn anyway.\n5. If I want to practice, play the person I'm asking, by text, using what I write myself. Then step out and give me one thing that worked and one thing to change. Don't write my message for me.\n\nRules: don't invent prices, local businesses or people; label numbers rough; tell me how to find the going rate instead of what to charge; keep every step legal and sized to my real week.";
 const TAGS = [{"id":"no_debt","label":"Avoid debt"},{"id":"day_job","label":"Keep my day job"},{"id":"own_it","label":"Own it myself"},{"id":"fast_sale","label":"Fastest first sale"},{"id":"cheap_start","label":"Cheapest start"},{"id":"team_up","label":"Team up"}];
@@ -377,7 +367,6 @@ const TAGS = [{"id":"no_debt","label":"Avoid debt"},{"id":"day_job","label":"Kee
 "use strict";
 const JIM_EMAIL = "jwhitbec@uccs.edu";
 const RELAY = "https://from-here-to-there-relay.from-here-to-there-relay.workers.dev";
-const CODE_KEY = "fht-passcode";
 const STATE_KEY = "wbm-state";
 const VERSION = 2;
 const MAX_ROUTES = 6, MAX_WITH_OWN = 8;
@@ -465,14 +454,10 @@ function ctx() {
   return { cards: cardsText(), answers: answersText(), now: fmtDT(new Date()),
     deadline: deadlineText() || "set when they pick a first move, 48 hours from then", push: !!S.push };
 }
-function getCode() { try { return localStorage.getItem(CODE_KEY) || ""; } catch (e) { return ""; } }
-function setCode(c) { try { if (c) localStorage.setItem(CODE_KEY, c); else localStorage.removeItem(CODE_KEY); } catch (e) {} }
 function errorCopy(code) {
   switch (code) {
-    case "bad_passcode": return "That passcode didn't work. Check it and try again.";
     case "passcode_cap": return "You've used all of your Claude calls for today. They reset overnight (Mountain Time). You can still copy a prompt into any chatbot.";
     case "global_cap": return "The class has used up the tool's Claude calls for today. Try again tomorrow, or copy a prompt into any chatbot.";
-    case "too_many_tries": return "Too many wrong passcodes from this connection. Wait an hour and try again.";
     case "unreachable": return "This page can't reach the From Here to There server right now. Check your connection and try again, or copy a prompt into any chatbot.";
     case "upstream": return "Claude is busy or didn't finish. Wait a minute, then try again.";
     case "refused": return "Claude wouldn't answer that one. Change what you wrote and try again.";
@@ -489,32 +474,13 @@ function normUrl(u) { try { const x = new URL(u); return x.protocol + "//" + x.h
 function isVerified(u) { const n = normUrl(str(u)); return !!n && (S.srcUrls || []).includes(n); }
 function safeLink(u, label) { return /^https?:\/\//i.test(str(u)) ? h("a", { href: str(u), target: "_blank", rel: "noopener noreferrer", text: label || str(u) }) : null; }
 
-/* The relay needs a passcode. Ask once, check it, remember it in this browser. */
-function ensureCode() {
-  if (getCode()) return Promise.resolve(true);
-  return new Promise((resolve) => {
-    const ov = $("pass-overlay"), inp = $("pass-in"), msg = $("pass-msg");
-    ov.classList.remove("hidden"); msg.textContent = ""; inp.value = ""; inp.focus();
-    const go = async () => {
-      const c = inp.value.trim(); if (!c) return;
-      msg.textContent = "Checking...";
-      try {
-        const r = await fetch(RELAY + "/api/check", { method: "POST", headers: { "X-Passcode": c } });
-        if (r.ok) { setCode(c); ov.classList.add("hidden"); resolve(true); return; }
-        const j = await r.json().catch(() => ({}));
-        msg.textContent = errorCopy(j.error || "bad_passcode");
-      } catch (e) { msg.textContent = errorCopy("unreachable"); }
-    };
-    $("pass-go").onclick = go; inp.onkeydown = (e) => { if (e.key === "Enter") go(); };
-    $("pass-cancel").onclick = () => { ov.classList.add("hidden"); resolve(false); };
-  });
-}
+function ensureCode() { return Promise.resolve(true); }   // no passcode any more
 
 /* One call: send the step name and the student's inputs, read the reply as it streams. */
 async function relay(step, vals, messages, signal, onText) {
   const body = Object.assign({ step, vars: Object.assign(ctx(), vals || {}) }, messages ? { messages } : {});
   let res;
-  try { res = await fetch(RELAY + "/api/step", { method: "POST", signal, headers: { "Content-Type": "application/json", "X-Passcode": getCode() }, body: JSON.stringify(body) }); }
+  try { res = await fetch(RELAY + "/api/step", { method: "POST", signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); }
   catch (e) { throw { code: e && e.name === "AbortError" ? "cancelled" : "unreachable" }; }
   if (!res.ok) {
     const j = await res.json().catch(() => ({}));
@@ -566,7 +532,6 @@ function handleFail(b, e) {
   b.fail(e);
   const code = e && e.code;
   lastErr = code || "";
-  if (code === "bad_passcode") { setCode(""); return; }
   if (FALLBACK_CODES.includes(code)) showFallback(code);
 }
 function parseJSON(text) {
@@ -1316,7 +1281,6 @@ $("ics").onclick = () => saveIcs($("copy-msg"));
 /* fallback */
 $("copy-fallback").onclick = () => copyText($("fallback-text").value, $("fallback-msg"), $("fallback-text"));
 $("fallback-back").onclick = () => show(S.step || 0);
-$("pass-forget").onclick = () => { setCode(""); $("pass-forget").textContent = "Passcode cleared. You'll be asked again."; };
 
 /* ---------- start ---------- */
 function oldStateMessage(dump) {

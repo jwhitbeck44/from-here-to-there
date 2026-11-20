@@ -15,7 +15,6 @@ for (const [label, vp, scale] of [["phone", { width: 390, height: 844 }, 2], ["l
   for (const scheme of ["light", "dark"]) {
     if (scheme === "dark" && label === "laptop") continue;
     const ctx = await browser.newContext({ viewport: vp, deviceScaleFactor: scale, colorScheme: scheme, acceptDownloads: true });
-    await ctx.addInitScript((code) => { localStorage.setItem("fht-passcode", code); }, GOOD);
     const page = await ctx.newPage();
     await mockRelay(page, PAGE);
     page.on("pageerror", (e) => problems.push(label + " pageerror: " + e.message));
